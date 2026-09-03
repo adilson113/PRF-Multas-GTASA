@@ -1,0 +1,44 @@
+name: Build PRF Multas
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar NDK
+        run: |
+          sdkmanager "ndk;25.2.9519653" "cmake;3.22.1"
+
+      - name: Compilar
+        run: |
+          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.9519653
+
+          mkdir build
+          cd build
+
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=armeabi-v7a \
+            -DANDROID_PLATFORM=android-21
+
+          cmake --build .
+
+      - name: Salvar mod compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: PRFMultas-ARMv7
+          path: build/*.so
